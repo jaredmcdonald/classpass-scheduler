@@ -1,0 +1,15 @@
+[
+  {
+    "name" : "bodyburn",
+    "url_slug" : "brooklyn-bodyburn-williamsburg",
+    "attended" : true
+  },
+  {
+    "name" : "human@ease",
+    "url_slug" : "humanease-brooklyn",
+    "constraints" : {
+      "desired_dates" : [ "2014-11-12" ],
+      "desired_times" : [ "6:30 pm" ]
+    }
+  }
+]

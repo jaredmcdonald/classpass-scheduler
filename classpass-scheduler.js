@@ -1,9 +1,6 @@
 var fs = require('fs')
-,   _ = require('./lib/underscore')
 ,   casper = require('casper').create({
-      clientScripts : [
-        'lib/jquery-2.1.1.js'
-      ],
+      verbose : true,
       viewportSize : { width: 1024, height: 768 }
     })
 ,   colorizer = require('colorizer').create('Colorizer')
@@ -81,7 +78,7 @@ casper.then(function () {
 
       if (!totalAvailableClasses.length) return false
 
-      var desiredClasses = _.filter(totalAvailableClasses, _.partial(doesClassMeetConstraints, studio.constraints))
+      var desiredClasses = totalAvailableClasses.filter(doesClassMeetConstraints.bind(undefined, studio.constraints))
       log(desiredClasses.length + ' classe(s) matching constraints at "{{studioName}}"'
                                     .replace(studioNameRegex, studio.name))
 
@@ -95,6 +92,16 @@ casper.then(function () {
           log('attempting to book ' + this.getTitle().replace(/\s\|.*/, ' at "{{studioName}}"'
                                                      .replace(studioNameRegex, studio.name)))
 
+          this.click('.reserve')
+        })
+
+        casper.waitForSelector('.modal', function () {
+          this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
+        })
+
+        casper.waitFor(isFormSubmittable).thenClick('#submit')
+
+        casper.wait(5000) // until POST goes thru - gotta be a better way of doing this
 
       })
     })
