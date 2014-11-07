@@ -5,17 +5,33 @@ var fs = require('fs')
     })
 ,   colorizer = require('colorizer').create('Colorizer')
 ,   logHeader = '[classpass-scheduler @ {{time}}] '
+
+// regexes for string interpolation
 ,   timeRegex = /\{\{time\}\}/
 ,   studioNameRegex = /\{\{studioName\}\}/
+,   classNameRegex = /\{\{className\}\}/
+
+// configuration
 ,   email = casper.cli.args[0]
 ,   password = casper.cli.args[1]
 ,   studios = JSON.parse(fs.read('./studios.json'))
+
+if (!email || !password) {
+  log('ERROR: must provide email and password as command-line arguments', 'ERROR')
+  casper.exit(1)
+}
+
+// steps
+casper.start('http://classpass.com/a/LoginNew', login)
+casper.waitForUrl(/\/home/, loginHandler, loginFailHandler)
+casper.then(iterateStudios)
+casper.run()
 
 function log (msg, type) {
   casper.echo(logHeader.replace(timeRegex , new Date().toLocaleString()) + msg, type || 'INFO')
 }
 
-function getAvailableClasses (constraints) {
+function getAvailableClasses () {
   return casper.evaluate(function () {
     var availableClasses = []
 
@@ -44,68 +60,75 @@ function doesClassMeetConstraints (constraints, item) {
          (!constraints.desired_times || constraints.desired_times.indexOf(item.startTime) >= 0)
 }
 
-if (!email || !password) {
-  log('ERROR: must provide email and password as command-line arguments', 'ERROR')
-  casper.exit(1)
-}
-
-casper.start('http://classpass.com/a/LoginNew', function () {
+function login () {
   log('connected to classpass')
 
-  this.fillSelectors('form.cl-login-form', {
+  casper.fillSelectors('form.cl-login-form', {
     'input[name="email"]' : email,
     'input[name="pwd"]' : password,
     'input[name="remember_me"]' : 0
   }, true)
-})
+}
 
-casper.waitForUrl(/\/home/, function () {
+function loginHandler () {
   log('login successful')
-}, function () {
+}
+
+function loginFailHandler () {
   log('login failed', 'ERROR')
   casper.exit(0)
-})
+}
 
-casper.then(function () {
-  studios.forEach(function (studio) {
+function iterateStudios () {
+  studios.forEach(eachStudio)
+}
 
-    casper.thenOpen('http://classpass.com/' + studio.url_slug, function () {
-      log('checking studio "{{studioName}}"'.replace(studioNameRegex, studio.name))
+function eachStudio (studio) {
+  casper.thenOpen('http://classpass.com/' + studio.url_slug, digestStudio.bind(undefined, studio))
+}
 
-      var totalAvailableClasses = getAvailableClasses()
-      log(totalAvailableClasses.length + ' total available classe(s) at "{{studioName}}"'
-                                           .replace(studioNameRegex, studio.name))
+function eachClass (studio, c) {
 
-      if (!totalAvailableClasses.length) return false
+  var attended = studio.attended ? 'yes' : 'no'
 
-      var desiredClasses = totalAvailableClasses.filter(doesClassMeetConstraints.bind(undefined, studio.constraints))
-      log(desiredClasses.length + ' classe(s) matching constraints at "{{studioName}}"'
-                                    .replace(studioNameRegex, studio.name))
+  casper.thenOpen(c.real_class_url, function () {
+    c.name = this.getTitle().replace(/\s\|.*/, '')
 
-      if (!desiredClasses.length) return false
+    log('attempting to book "{{className}}" at "{{studioName}}"'
+          .replace(classNameRegex, c.name)
+          .replace(studioNameRegex, studio.name))
 
-      desiredClasses.forEach(function (c) {
-
-        var attended = studio.attended ? 'yes' : 'no'
-
-        casper.thenOpen(c.real_class_url, function () {
-          log('attempting to book ' + this.getTitle().replace(/\s\|.*/, ' at "{{studioName}}"'
-                                                     .replace(studioNameRegex, studio.name)))
-
-          this.click('.reserve')
-        })
-
-        casper.waitForSelector('.modal', function () {
-          this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
-        })
-
-        casper.waitFor(isFormSubmittable).thenClick('#submit')
-
-        casper.wait(5000) // until POST goes thru - gotta be a better way of doing this
-
-      })
-    })
+    this.click('.reserve')
   })
-})
 
-casper.run()
+  casper.waitForSelector('.modal', function () {
+    this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
+  })
+
+  casper.waitFor(isFormSubmittable).thenClick('#submit')
+
+  // until POST goes thru - gotta be a better way of doing this
+  casper.wait(5000).then(function () {
+    log('successfully booked class "{{className}}" at {{studioName}}"'
+          .replace(classNameRegex, c.name)
+          .replace(studioNameRegex, studio.name))
+  })
+}
+
+function digestStudio (studio) {
+  log('checking studio "{{studioName}}"'.replace(studioNameRegex, studio.name))
+
+  var totalAvailableClasses = getAvailableClasses()
+  log(totalAvailableClasses.length + ' total available classe(s) at "{{studioName}}"'
+                                       .replace(studioNameRegex, studio.name))
+
+  if (!totalAvailableClasses.length) return false
+
+  var desiredClasses = totalAvailableClasses.filter(doesClassMeetConstraints.bind(undefined, studio.constraints))
+  log(desiredClasses.length + ' classe(s) matching constraints at "{{studioName}}"'
+                                .replace(studioNameRegex, studio.name))
+
+  if (!desiredClasses.length) return false
+
+  desiredClasses.forEach(eachClass.bind(undefined, studio))
+}
