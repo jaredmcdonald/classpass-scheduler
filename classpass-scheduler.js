@@ -19,15 +19,16 @@ var fs = require('fs')
 ,   password = casper.cli.args[1]
 ,   studios = JSON.parse(fs.read('./studios.json'))
 
-if (!email || !password) {
-  log('ERROR: must provide email and password as command-line arguments', 'ERROR')
-  casper.exit(1)
-}
-
 // load custom modules
 var log = require('./modules/log').bind(undefined, casper)
 ,   domUtils = require('./modules/dom-utilities')(casper)
 ,   constraints = require('./modules/constraints')(moment)
+
+// check command-line args
+if (!email || !password) {
+  log('ERROR: must provide email and password as command-line arguments', 'ERROR')
+  casper.exit(1)
+}
 
 // steps
 casper.start('http://classpass.com/a/LoginNew', login)
