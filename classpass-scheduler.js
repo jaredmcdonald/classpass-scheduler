@@ -11,10 +11,7 @@ var fs = require('fs')
 ,   timeRegex = /\{\{time\}\}/
 ,   studioNameRegex = /\{\{studioName\}\}/
 ,   classNameRegex = /\{\{className\}\}/
-
-// date formatting
-,   plusDaysRegex = /^\+(\d)+$/
-,   dateFormat = 'YYYY-MM-DD'
+,   constraintRegex = /\{\{constraint\}\}/
 
 // configuration
 ,   email = casper.cli.args[0]
@@ -26,58 +23,16 @@ if (!email || !password) {
   casper.exit(1)
 }
 
+// load custom modules
+var log = require('./modules/log').bind(undefined, casper)
+,   domUtils = require('./modules/dom-utilities')(casper)
+,   constraints = require('./modules/constraints')(moment, plusDaysRegex, dateFormat)
+
 // steps
 casper.start('http://classpass.com/a/LoginNew', login)
 casper.waitForUrl(/\/home/, loginHandler, loginFailHandler)
 casper.then(iterateStudios.bind(undefined, eachStudio))
 casper.run()
-
-function log (msg, type) {
-  casper.echo(logHeader.replace(timeRegex , new Date().toLocaleString()) + msg, type || 'INFO')
-}
-
-function getAvailableClasses () {
-  return casper.evaluate(function () {
-    var availableClasses = []
-
-    $('.venue-class').each(function () {
-      var $class = $(this)
-      if ($class.find('a.cl-auth.reserve').length) {
-        availableClasses.push($.extend($class.data(), {
-          real_class_url : $class.find('a.class-link').attr('href')
-        }))
-      }
-    })
-
-    return availableClasses
-  })
-}
-
-function isFormSubmittable () {
-  return casper.evaluate(function () {
-    return !$('#submit').hasClass('disabled')
-  })
-}
-
-function doesClassMeetConstraints (constraints, item) {
-  return !constraints ||
-         (constraintResolver('date', constraints.desired_dates, item)) &&
-         (constraintResolver('time', constraints.desired_times, item))
-}
-
-function constraintResolver (type, constraint, item) {
-  if (type === 'date' && typeof constraint === 'string') {
-    try {
-      var match = constraint.match(plusDaysRegex)[1]
-    } catch (e) {
-      log('ERROR: improperly specified date constraint. Got ' + constraint, 'ERROR')
-      casper.exit(1)
-    }
-    return moment.add(7, 'days').format(dateFormat) === constraint
-  }
-
-  return !constraint || constraint.indexOf(item.classDate) >= 0
-}
 
 function login () {
   log('connected to classpass')
@@ -124,11 +79,11 @@ function eachClass (studio, c) {
     this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
   })
 
-  casper.waitFor(isFormSubmittable).thenClick('#submit')
+  casper.waitFor(domUtils.isFormSubmittable).thenClick('#submit')
 
   // until POST goes thru - gotta be a better way of doing this
   casper.wait(5000).then(function () {
-    log('successfully booked class "{{className}}" at {{studioName}}"'
+    log('successfully booked class "{{className}}" at "{{studioName}}"'
           .replace(classNameRegex, c.name)
           .replace(studioNameRegex, studio.name))
   })
@@ -137,13 +92,15 @@ function eachClass (studio, c) {
 function digestStudio (studio) {
   log('checking studio "{{studioName}}"'.replace(studioNameRegex, studio.name))
 
-  var totalAvailableClasses = getAvailableClasses()
+  var totalAvailableClasses = domUtils.getAvailableClasses()
   log(totalAvailableClasses.length + ' total available classe(s) at "{{studioName}}"'
                                        .replace(studioNameRegex, studio.name))
 
   if (!totalAvailableClasses.length) return false
 
-  var desiredClasses = totalAvailableClasses.filter(doesClassMeetConstraints.bind(undefined, studio.constraints))
+  studio.constraints.desired_dates = constraints.updateDate(studio.constraints.desired_dates)
+
+  var desiredClasses = totalAvailableClasses.filter(constraints.doesClassMeetConstraints.bind(undefined, studio.constraints))
   log(desiredClasses.length + ' classe(s) matching constraints at "{{studioName}}"'
                                 .replace(studioNameRegex, studio.name))
 

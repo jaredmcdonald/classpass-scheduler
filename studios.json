@@ -8,7 +8,7 @@
     "name" : "human@ease",
     "url_slug" : "humanease-brooklyn",
     "constraints" : {
-      "desired_dates" : "+7",
+      "desired_dates" : "+6",
       "desired_times" : [ "6:30 pm", "8:00 pm" ]
     }
   }
