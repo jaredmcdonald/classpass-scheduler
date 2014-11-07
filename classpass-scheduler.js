@@ -1,3 +1,5 @@
+#!/usr/bin/env casperjs
+
 var fs = require('fs')
 ,   moment = require('moment')
 ,   casper = require('casper').create({
@@ -25,7 +27,7 @@ if (!email || !password) {
 // load custom modules
 var log = require('./modules/log').bind(undefined, casper)
 ,   domUtils = require('./modules/dom-utilities')(casper)
-,   constraints = require('./modules/constraints')(moment, plusDaysRegex, dateFormat)
+,   constraints = require('./modules/constraints')(moment)
 
 // steps
 casper.start('http://classpass.com/a/LoginNew', login)

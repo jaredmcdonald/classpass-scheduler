@@ -8,7 +8,7 @@ function constraintResolver (type, constraint, item) {
 var plusDaysRegex = /^\+(\d)+$/
 ,   dateFormat = 'YYYY-MM-DD'
 
-module.exports = function (moment, plusDaysRegex, dateFormat) {
+module.exports = function (moment) {
   return {
     doesClassMeetConstraints : function (constraints, item) {
       return !constraints ||
