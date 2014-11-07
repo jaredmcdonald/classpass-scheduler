@@ -8,7 +8,6 @@ var fs = require('fs')
 ,   logHeader = '[classpass-scheduler @ {{time}}] '
 
 // regexes for string interpolation
-,   timeRegex = /\{\{time\}\}/
 ,   studioNameRegex = /\{\{studioName\}\}/
 ,   classNameRegex = /\{\{className\}\}/
 ,   constraintRegex = /\{\{constraint\}\}/
