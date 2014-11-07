@@ -1,4 +1,5 @@
 var fs = require('fs')
+,   moment = require('moment')
 ,   casper = require('casper').create({
       verbose : true,
       viewportSize : { width: 1024, height: 768 }
@@ -10,6 +11,10 @@ var fs = require('fs')
 ,   timeRegex = /\{\{time\}\}/
 ,   studioNameRegex = /\{\{studioName\}\}/
 ,   classNameRegex = /\{\{className\}\}/
+
+// date formatting
+,   plusDaysRegex = /^\+(\d)+$/
+,   dateFormat = 'YYYY-MM-DD'
 
 // configuration
 ,   email = casper.cli.args[0]
@@ -24,7 +29,7 @@ if (!email || !password) {
 // steps
 casper.start('http://classpass.com/a/LoginNew', login)
 casper.waitForUrl(/\/home/, loginHandler, loginFailHandler)
-casper.then(iterateStudios)
+casper.then(iterateStudios.bind(undefined, eachStudio))
 casper.run()
 
 function log (msg, type) {
@@ -56,8 +61,22 @@ function isFormSubmittable () {
 
 function doesClassMeetConstraints (constraints, item) {
   return !constraints ||
-         (!constraints.desired_dates || constraints.desired_dates.indexOf(item.classDate) >= 0) &&
-         (!constraints.desired_times || constraints.desired_times.indexOf(item.startTime) >= 0)
+         (constraintResolver('date', constraints.desired_dates, item)) &&
+         (constraintResolver('time', constraints.desired_times, item))
+}
+
+function constraintResolver (type, constraint, item) {
+  if (type === 'date' && typeof constraint === 'string') {
+    try {
+      var match = constraint.match(plusDaysRegex)[1]
+    } catch (e) {
+      log('ERROR: improperly specified date constraint. Got ' + constraint, 'ERROR')
+      casper.exit(1)
+    }
+    return moment.add(7, 'days').format(dateFormat) === constraint
+  }
+
+  return !constraint || constraint.indexOf(item.classDate) >= 0
 }
 
 function login () {
@@ -79,8 +98,8 @@ function loginFailHandler () {
   casper.exit(0)
 }
 
-function iterateStudios () {
-  studios.forEach(eachStudio)
+function iterateStudios (eachFn) {
+  studios.forEach(eachFn)
 }
 
 function eachStudio (studio) {

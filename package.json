@@ -1,0 +1,21 @@
+{
+  "name": "classpass-scheduler",
+  "dependencies": {
+    "moment": "^2.8.3"
+  },
+  "peerDependencies" : {
+    "casperjs": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaredmcdonald/classpass-scheduler.git"
+  },
+  "keywords": [
+    "classpass"
+  ],
+  "author": "jared mcdonald <jared.r.mcdonald@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/jaredmcdonald/classpass-scheduler/issues"
+  },
+  "homepage": "https://github.com/jaredmcdonald/classpass-scheduler"
+}
