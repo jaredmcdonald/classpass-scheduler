@@ -9,7 +9,7 @@ var fs = require('fs')
 ,   studioNameRegex = /\{\{studioName\}\}/
 ,   classNameRegex = /\{\{className\}\}/
 ,   constraintRegex = /\{\{constraint\}\}/
-,   attemptNumberRegex = /\{\{attemptNumber\}\}/
+,   attemptCounterRegex = /\{\{attemptCounter\}\}/
 
 // configuration
 ,   email = casper.cli.args[0]
@@ -30,7 +30,7 @@ if (!email || !password) {
 // steps
 casper.start('http://classpass.com/a/LoginNew', login)
 casper.waitForUrl(/\/home/, loginHandler, loginFailHandler)
-casper.then(iterateStudios.bind(undefined, eachStudio))
+casper.then(iterateStudios.bind(undefined, eachStudio.bind(undefined, 1)))
 casper.run()
 
 function login () {
@@ -56,16 +56,16 @@ function iterateStudios (eachFn) {
   studios.forEach(eachFn)
 }
 
-function eachStudio (studio, attempt) {
-  attempt = typeof attempt === 'number' ? attempt : 0
+function eachStudio (attempt, studio) {
   var maxAttempts = 5
 
-  log('attempt #{{attemptNumber}} at studio "{{studioName}}"'
-        .replace(attemptNumberRegex, attempt)
-        .replace(studioNameRegex, studio.name))
   casper.thenOpen('http://classpass.com/' + studio.url_slug, function () {
+    log('attempt {{attemptCounter}} at studio "{{studioName}}"'
+          .replace(attemptCounterRegex, attempt + ' of ' + maxAttempts)
+          .replace(studioNameRegex, studio.name))
+
     if (!digestStudio(studio) && attempt < maxAttempts) {
-      eachStudio(studio, attempt + 1)
+      eachStudio(attempt + 1, studio)
     }
   })
 }
