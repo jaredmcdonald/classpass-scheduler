@@ -9,6 +9,7 @@ var fs = require('fs')
 ,   studioNameRegex = /\{\{studioName\}\}/
 ,   classNameRegex = /\{\{className\}\}/
 ,   constraintRegex = /\{\{constraint\}\}/
+,   attemptNumberRegex = /\{\{attemptNumber\}\}/
 
 // configuration
 ,   email = casper.cli.args[0]
@@ -55,8 +56,18 @@ function iterateStudios (eachFn) {
   studios.forEach(eachFn)
 }
 
-function eachStudio (studio) {
-  casper.thenOpen('http://classpass.com/' + studio.url_slug, digestStudio.bind(undefined, studio))
+function eachStudio (studio, attempt) {
+  attempt = typeof attempt === 'number' ? attempt : 0
+  var maxAttempts = 5
+
+  log('attempt #{{attemptNumber}} at studio "{{studioName}}"'
+        .replace(attemptNumberRegex, attempt)
+        .replace(studioNameRegex, studio.name))
+  casper.thenOpen('http://classpass.com/' + studio.url_slug, function () {
+    if (!digestStudio(studio) && attempt < maxAttempts) {
+      eachStudio(studio, attempt + 1)
+    }
+  })
 }
 
 function eachClass (studio, c) {

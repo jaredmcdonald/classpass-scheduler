@@ -1,5 +1,12 @@
 [
   {
+    "name" : "human@ease",
+    "url_slug" : "humanease-brooklyn",
+    "constraints" : {
+      "desired_dates" : "+5"
+    }
+  },
+  {
     "name" : "bodyburn",
     "url_slug" : "brooklyn-bodyburn-williamsburg",
     "attended" : true,
@@ -13,7 +20,7 @@
     "name" : "fhitting room",
     "url_slug" : "the-fhitting-room-new-york",
     "constraints" : {
-      "desired_dates" : "+7",
+      "desired_dates" : [ "2014-11-12", "2014-11-15" ],
       "desired_times" : [ "5:30 pm", "6:30 pm" ]
     }
   }
