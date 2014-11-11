@@ -2,14 +2,19 @@
   {
     "name" : "bodyburn",
     "url_slug" : "brooklyn-bodyburn-williamsburg",
-    "attended" : true
+    "attended" : true,
+    "constraints" : {
+      "desired_dates" : "+7",
+      "desired_times" : [ "6:00 pm", "7:00 pm" ]
+    }
+
   },
   {
-    "name" : "human@ease",
-    "url_slug" : "humanease-brooklyn",
+    "name" : "fhitting room",
+    "url_slug" : "the-fhitting-room-new-york",
     "constraints" : {
-      "desired_dates" : "+6",
-      "desired_times" : [ "6:30 pm", "8:00 pm" ]
+      "desired_dates" : "+7",
+      "desired_times" : [ "5:30 pm", "6:30 pm" ]
     }
   }
 ]

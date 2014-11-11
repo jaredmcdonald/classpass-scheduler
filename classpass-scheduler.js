@@ -2,12 +2,8 @@
 
 var fs = require('fs')
 ,   moment = require('moment')
-,   casper = require('casper').create({
-      verbose : true,
-      viewportSize : { width: 1024, height: 768 }
-    })
+,   casper = require('casper').create()
 ,   colorizer = require('colorizer').create('Colorizer')
-,   logHeader = '[classpass-scheduler @ {{time}}] '
 
 // regexes for string interpolation
 ,   studioNameRegex = /\{\{studioName\}\}/
