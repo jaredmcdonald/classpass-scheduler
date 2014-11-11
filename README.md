@@ -12,6 +12,12 @@ You need `casperjs`.
 npm install -g casperjs
 ```
 
+then install modules
+
+```bash
+cd <wherever-you-cloned-the-repo> && npm install
+```
+
 ### studio setup
 
 All of the studios we'll try to book from are in `studios.json`. Create this file by copying over the example: `cp studios-example.json studios.json`
