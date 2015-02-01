@@ -82,11 +82,11 @@ function login () {
 }
 
 function loginHandler () {
-  log('login successful')
+  log('login successful as ' + email)
 }
 
 function loginFailHandler () {
-  log('login failed', 'ERROR')
+  log('login failed for ' + email, 'ERROR')
   casper.exit(0)
 }
 
