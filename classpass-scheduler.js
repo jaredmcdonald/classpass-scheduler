@@ -128,7 +128,7 @@ function eachClass (studio, c) {
 
     log('attempting to book ' + classAtStudioString)
 
-    try {
+    if (this.exists('.reserve') && !this.exists('.reserve.disabled')) {
       this.click('.reserve')
       this.waitForSelector('.modal', function () {
         this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
@@ -142,16 +142,14 @@ function eachClass (studio, c) {
             .replace(classNameRegex, c.name)
             .replace(studioNameRegex, studio.name))
       })
-    } catch (e) {
-      if (this.exists('.reserved')) {
-        log('you already have ' + classAtStudioString + ' booked'
-            .replace(classNameRegex, c.name)
-            .replace(studioNameRegex, studio.name))
-      } else {
-        log(classAtStudioString + ' is not available'
-            .replace(classNameRegex, c.name)
-            .replace(studioNameRegex, studio.name))
-      }
+    } else if (this.exists('.reserved')) {
+      log('you already have ' + classAtStudioString + ' booked'
+          .replace(classNameRegex, c.name)
+          .replace(studioNameRegex, studio.name))
+    } else {
+      log(classAtStudioString + ' is not available'
+          .replace(classNameRegex, c.name)
+          .replace(studioNameRegex, studio.name))
     }
   })
 }
