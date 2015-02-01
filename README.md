@@ -70,7 +70,7 @@ So, for example (this is `studios-example.json`):
 
 ```
 
-### classes setup
+### `class`
 
 On the command line: `--mode=class`
 
