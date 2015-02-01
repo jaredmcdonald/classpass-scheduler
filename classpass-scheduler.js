@@ -12,25 +12,63 @@ var fs = require('fs')
 ,   attemptCounterRegex = /\{\{attemptCounter\}\}/
 
 // configuration
-,   email = casper.cli.args[0]
-,   password = casper.cli.args[1]
-,   studios = JSON.parse(fs.read('./studios.json'))
+,   email = casper.cli.options.email
+,   password = casper.cli.options.password
+,   mode = casper.cli.options.mode || 'studio'
+,   studios = []
+,   classes = []
+
+// load log module
+var log = require('./modules/log').bind(undefined, casper)
+
+if (mode === 'studio') {
+  try {
+    studios = JSON.parse(fs.read('./studios.json'))
+  } catch (e) {
+    log('Can\'t find ./studios.json. Aborting...', 'ERROR')
+    casper.exit(1)
+  }
+} else {
+  // mode === 'class'
+  try {
+    classes = JSON.parse(fs.read('./classes.json'))
+  } catch (e) {
+    log('Can\'t find ./classes.json. Aborting...', 'ERROR')
+    casper.exit(1)
+  }
+}
 
 // load custom modules
-var log = require('./modules/log').bind(undefined, casper)
-,   domUtils = require('./modules/dom-utilities')(casper)
+var domUtils = require('./modules/dom-utilities')(casper)
 ,   constraints = require('./modules/constraints')(moment)
 
-// check command-line args
-if (!email || !password) {
-  log('ERROR: must provide email and password as command-line arguments', 'ERROR')
+// check command-line options
+var optionsFailure = false
+,   USAGE_INFO = 'Usage: casperjs classpass-scheduler.js --email=\'your.email@example.com\' --password=\'yourClasspassPassword\' [--mode=studio|class]'
+
+if (!email) {
+  log('ERROR: missing email', 'ERROR')
+  optionsFailure = true
+}
+if (!password) {
+  log('ERROR: missing password', 'ERROR')
+  optionsFailure = true
+}
+if (optionsFailure) {
+  log(USAGE_INFO, 'ERROR')
   casper.exit(1)
 }
 
 // steps
 casper.start('http://classpass.com/a/LoginNew', login)
 casper.waitForUrl(/\/home/, loginHandler, loginFailHandler)
-casper.then(iterateStudios.bind(undefined, eachStudio.bind(undefined, 1)))
+if (mode === 'studio') {
+  casper.then(studioMode.bind(undefined, eachStudio.bind(undefined, 1)))
+} else {
+  // mode === 'class'
+  casper.then(classMode)
+}
+
 casper.run()
 
 function login () {
@@ -52,8 +90,15 @@ function loginFailHandler () {
   casper.exit(0)
 }
 
-function iterateStudios (eachFn) {
+function studioMode (eachFn) {
   studios.forEach(eachFn)
+}
+
+function classMode () {
+  classes.forEach(function (c) {
+    c.real_class_url = c.url
+    eachClass({ name : c.studio, attended : c.attended }, c)
+  })
 }
 
 function eachStudio (attempt, studio) {
@@ -77,24 +122,37 @@ function eachClass (studio, c) {
   casper.thenOpen(c.real_class_url, function () {
     c.name = this.getTitle().replace(/\s\|.*/, '')
 
-    log('attempting to book "{{className}}" at "{{studioName}}"'
-          .replace(classNameRegex, c.name)
-          .replace(studioNameRegex, studio.name))
+    var classAtStudioString = '{{className}}{{studioName}}'
+        .replace(classNameRegex, c.name)
+        .replace(studioNameRegex, studio.name ? ' at ' + studio.name : '')
 
-    this.click('.reserve')
-  })
+    log('attempting to book ' + classAtStudioString)
 
-  casper.waitForSelector('.modal', function () {
-    this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
-  })
+    try {
+      this.click('.reserve')
+      this.waitForSelector('.modal', function () {
+        this.click('input[name="passport_venue_attended"][value="' + attended +'"]')
+      })
 
-  casper.waitFor(domUtils.isFormSubmittable).thenClick('#submit')
+      this.waitFor(domUtils.isFormSubmittable).thenClick('#submit')
 
-  // until POST goes thru - gotta be a better way of doing this
-  casper.wait(5000).then(function () {
-    log('successfully booked class "{{className}}" at "{{studioName}}"'
-          .replace(classNameRegex, c.name)
-          .replace(studioNameRegex, studio.name))
+      // until POST goes thru - gotta be a better way of doing this
+      this.wait(5000).then(function () {
+        log('successfully booked ' + classAtStudioString
+            .replace(classNameRegex, c.name)
+            .replace(studioNameRegex, studio.name))
+      })
+    } catch (e) {
+      if (this.exists('.reserved')) {
+        log('you already have ' + classAtStudioString + ' booked'
+            .replace(classNameRegex, c.name)
+            .replace(studioNameRegex, studio.name))
+      } else {
+        log(classAtStudioString + ' is not available'
+            .replace(classNameRegex, c.name)
+            .replace(studioNameRegex, studio.name))
+      }
+    }
   })
 }
 

@@ -18,7 +18,13 @@ then install modules
 cd <wherever-you-cloned-the-repo> && npm install
 ```
 
-### studio setup
+## modes
+
+There are two modes, `studio` (default) and `class`. Studio info is stored in `studios.json`; class info in `classes.json`. `studio` mode attempts to book classes, given information about a studio and desired times; `class` mode takes specific classes as input and attempts to book them, in the order they're provided.
+
+### `studio`
+
+On the command line: `--mode=studio` (or omit `--mode` entirely; this is the default behavior).
 
 All of the studios we'll try to book from are in `studios.json`. Create this file by copying over the example: `cp studios-example.json studios.json`
 
@@ -26,8 +32,8 @@ Fields for each studio:
 
 - `name` (required, `String`) - whatever you want to call the studio
 - `url_slug` (required, `String`) - the url slug of the studio: `http://classpass.com/<url_slug>`
-- `attended` (optional, `Boolean`; defaults to `false`) - have you attended the studio before?
-- `constraints` (optional, `Object` - date and time constraints. if not present, will book anything (if available) at the given studio. fields:
+- `attended` (optional, `Boolean`, default: `false`) - have you attended the studio before?
+- `constraints` (optional, `Object`) - date and time constraints. if not present, will book anything (if available) at the given studio. fields:
     - `desired_dates` (optional, `Array` or `String`) - either an array of dates, each formatted `"YYYY-MM-DD"`, or a string beginning with a plus - how many days in the future. if not present, won't look at dates when filtering down available classes at this studio
     - `desired_times` (optional, `Array`) - array of desired times, each formatted `"(H)H:MM (a/p)m"`. if not present, won't look at times when filtering down available classes at this studio
 
@@ -64,14 +70,38 @@ So, for example (this is `studios-example.json`):
 
 ```
 
+### classes setup
+
+On the command line: `--mode=class`
+
+Just like for `studio` mode, `class` mode requires classes in `classes.json`. Create this file by copying over the example: `cp classes-example.json classes.json`.
+
+Fields for each class:
+
+- `url` (required, `String`): full url of the class
+- `studio` (optional, `String`): name of the studio
+- `attended` (optional, `Boolean`, default: `false`): whether or not you've attended this studio
+
+For example (from `classes-example.json`):
+
+```json
+
+[
+  {
+    "attended" : false,
+    "url" : "http://classpass.com/syncstudio-bklyn-brooklyn/synccycling-the-basics-ygm7/77744902"
+  }, {
+    "studio" : "studio 360",
+    "url" : "http://classpass.com/studio-360-new-york/sunrise-vinyasa-debd/77745885"
+  }, {
+    "url" : "http://classpass.com/brooklyn-bodyburn-cobble-hill/bodyburn-all-levels-0d57/78866279"
+  }
+]
+
+```
 
 ## running
 
 ```bash
-casperjs classpass-scheduler.js your.email@example.com yourClasspassPassword
-```
-
-Or you can make it executable.
-```bash
-chmod +x classpass-scheduler.js && ./classpass-scheduler.js your.email@example.com yourClasspassPassword
+casperjs classpass-scheduler.js --email='your.email@example.com' --password='yourClasspassPassword' [--mode=studio|class]
 ```

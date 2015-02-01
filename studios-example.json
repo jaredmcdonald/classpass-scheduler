@@ -11,7 +11,7 @@
     "url_slug" : "brooklyn-bodyburn-williamsburg",
     "attended" : true,
     "constraints" : {
-      "desired_dates" : "+7",
+      "desired_dates" : "+6",
       "desired_times" : [ "6:00 pm", "7:00 pm" ]
     }
 
