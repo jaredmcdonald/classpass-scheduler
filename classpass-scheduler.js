@@ -15,6 +15,7 @@ var fs = require('fs')
 ,   email = casper.cli.options.email
 ,   password = casper.cli.options.password
 ,   mode = casper.cli.options.mode || 'studio'
+,   waitAfterLogin = parseInt(casper.cli.options.wait) * 1000 || 0
 ,   studios = []
 ,   classes = []
 
@@ -44,7 +45,7 @@ var domUtils = require('./modules/dom-utilities')(casper)
 
 // check command-line options
 var optionsFailure = false
-,   USAGE_INFO = 'Usage: casperjs classpass-scheduler.js --email=\'your.email@example.com\' --password=\'yourClasspassPassword\' [--mode=studio|class]'
+,   USAGE_INFO = 'Usage: casperjs classpass-scheduler.js --email=\'your.email@example.com\' --password=\'yourClasspassPassword\' [--mode=studio|class] [--wait=<int>]'
 
 if (!email) {
   log('ERROR: missing email', 'ERROR')
@@ -83,6 +84,10 @@ function login () {
 
 function loginHandler () {
   log('login successful as ' + email)
+  if (waitAfterLogin > 0) {
+    log('waiting ~' + casper.cli.options.wait + ' seconds before continuing')
+    casper.wait(waitAfterLogin)
+  }
 }
 
 function loginFailHandler () {

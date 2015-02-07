@@ -100,8 +100,14 @@ For example (from `classes-example.json`):
 
 ```
 
+## other options
+
+`--wait=<int>`
+
+Number of seconds to wait after logging in before attempting to book anything. e.g., `--wait=10` will wait 10 seconds.
+
 ## running
 
 ```bash
-casperjs classpass-scheduler.js --email='your.email@example.com' --password='yourClasspassPassword' [--mode=studio|class]
+casperjs classpass-scheduler.js --email='your.email@example.com' --password='yourClasspassPassword' [--mode=studio|class] [--wait=<int>]
 ```
