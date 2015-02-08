@@ -20,13 +20,13 @@ cd <wherever-you-cloned-the-repo> && npm install
 
 ## modes
 
-There are two modes, `studio` (default) and `class`. Studio info is stored in `studios.json`; class info in `classes.json`. `studio` mode attempts to book classes, given information about a studio and desired times; `class` mode takes specific classes as input and attempts to book them, in the order they're provided.
+There are two modes, `studio` (default) and `class`. `studio` mode attempts to book classes, given information about a studio and desired times; `class` mode takes specific classes as input and attempts to book them, in the order they're provided.
 
 ### `studio`
 
 On the command line: `--mode=studio` (or omit `--mode` entirely; this is the default behavior).
 
-All of the studios we'll try to book from are in the file specified in `--file` (see below; defaults to `studios.json`). Create this file by copying over the example: `cp studios-example.json studios.json`
+All of the studios we'll try to book from are in the file specified in `--file` ([see below](#--filepathtofilejson); defaults to `./studios.json`). Create this file by copying over the example: `cp studios-example.json studios.json`
 
 Fields for each studio:
 
@@ -37,7 +37,7 @@ Fields for each studio:
     - `desired_dates` (optional, `Array` or `String`) - either an array of dates, each formatted `"YYYY-MM-DD"`, or a string beginning with a plus - how many days in the future. if not present, won't look at dates when filtering down available classes at this studio
     - `desired_times` (optional, `Array`) - array of desired times, each formatted `"(H)H:MM (a/p)m"`. if not present, won't look at times when filtering down available classes at this studio
 
-So, for example (this is `studios-example.json`):
+So, for example (this is `./studios-example.json`):
 
 ```json
 [
@@ -74,7 +74,7 @@ So, for example (this is `studios-example.json`):
 
 On the command line: `--mode=class`
 
-Just like for `studio` mode, `class` mode requires classes in the input file (specified in `--file`; see below). Create this file by copying over the example: `cp classes-example.json classes.json`.
+Just like for `studio` mode, `class` mode requires classes in the input file (specified in `--file`; [see below](#--filepathtofilejson)). Create the default file, `./classes.json`, by copying over the example: `cp classes-example.json classes.json`.
 
 Fields for each class:
 
