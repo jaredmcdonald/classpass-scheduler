@@ -15,28 +15,21 @@ var fs = require('fs')
 ,   email = casper.cli.options.email
 ,   password = casper.cli.options.password
 ,   mode = casper.cli.options.mode || 'studio'
+,   file = casper.cli.options.file
 ,   waitAfterLogin = parseInt(casper.cli.options.wait) * 1000 || 0
-,   studios = []
-,   classes = []
+,   data = []
 
 // load log module
 var log = require('./modules/log').bind(undefined, casper)
 
-if (mode === 'studio') {
-  try {
-    studios = JSON.parse(fs.read('./studios.json'))
-  } catch (e) {
-    log('Can\'t find ./studios.json. Aborting...', 'ERROR')
-    casper.exit(1)
-  }
-} else {
-  // mode === 'class'
-  try {
-    classes = JSON.parse(fs.read('./classes.json'))
-  } catch (e) {
-    log('Can\'t find ./classes.json. Aborting...', 'ERROR')
-    casper.exit(1)
-  }
+// load data from input file
+file = file || (mode === 'class' ? './classes.json' : './studios.json')
+try {
+  log ('reading ' + mode + ' info from ' + file)
+  data = JSON.parse(fs.read(file))
+} catch (e) {
+  log('Can\'t find ' + file + '. Aborting...', 'ERROR')
+  casper.exit(1)
 }
 
 // load custom modules
@@ -96,11 +89,11 @@ function loginFailHandler () {
 }
 
 function studioMode (eachFn) {
-  studios.forEach(eachFn)
+  data.forEach(eachFn)
 }
 
 function classMode () {
-  classes.forEach(function (c) {
+  data.forEach(function (c) {
     c.real_class_url = c.url
     eachClass({ name : c.studio, attended : c.attended }, c)
   })

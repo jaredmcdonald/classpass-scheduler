@@ -26,7 +26,7 @@ There are two modes, `studio` (default) and `class`. Studio info is stored in `s
 
 On the command line: `--mode=studio` (or omit `--mode` entirely; this is the default behavior).
 
-All of the studios we'll try to book from are in `studios.json`. Create this file by copying over the example: `cp studios-example.json studios.json`
+All of the studios we'll try to book from are in the file specified in `--file` (see below; defaults to `studios.json`). Create this file by copying over the example: `cp studios-example.json studios.json`
 
 Fields for each studio:
 
@@ -74,7 +74,7 @@ So, for example (this is `studios-example.json`):
 
 On the command line: `--mode=class`
 
-Just like for `studio` mode, `class` mode requires classes in `classes.json`. Create this file by copying over the example: `cp classes-example.json classes.json`.
+Just like for `studio` mode, `class` mode requires classes in the input file (specified in `--file`; see below). Create this file by copying over the example: `cp classes-example.json classes.json`.
 
 Fields for each class:
 
@@ -102,12 +102,16 @@ For example (from `classes-example.json`):
 
 ## other options
 
-`--wait=<int>`
+### `--file=/path/to/file.json`
 
-Number of seconds to wait after logging in before attempting to book anything. e.g., `--wait=10` will wait 10 seconds.
+The path to the file (containing either studios or classes, as specified above). Optional. Default is `./studios.json` or `./classes.json`, depending on `mode`.
+
+### `--wait=<int>`
+
+Number of seconds to wait after logging in before attempting to book anything. e.g., `--wait=10` will wait 10 seconds (approximately--we're dealing with `setTimeout` here). Optional (default: no wait).
 
 ## running
 
 ```bash
-casperjs classpass-scheduler.js --email='your.email@example.com' --password='yourClasspassPassword' [--mode=studio|class] [--wait=<int>]
+casperjs classpass-scheduler.js --email='your.email@example.com' --password='yourClasspassPassword' [--mode=studio|class] [--file=/path/to/file.json] [--wait=<int>]
 ```
