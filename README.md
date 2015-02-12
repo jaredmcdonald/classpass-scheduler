@@ -104,7 +104,7 @@ For example (from `classes-example.json`):
 
 ### `--file=/path/to/file.json`
 
-The path to the file (containing either studios or classes, as specified above). Optional. Default is `./studios.json` or `./classes.json`, depending on `mode`.
+The path to the file (containing either studios or classes, as specified [above](#modes)). Optional. Default is `./studios.json` or `./classes.json`, depending on `mode`.
 
 ### `--wait=<int>`
 
